@@ -68,4 +68,4 @@ We must remember this always, Memory manager never allocates physical memory. It
 in case of execution memory request and whether to grant requested memory or not in case of storage memory request.
 
 Who exactly allocates the physical memory then? And who make these memory requests?
-We will answer this in next chapter [MemoryAllocator](MemoryConsumer.md).
+We will answer this in next chapter [MemoryConsumer](MemoryConsumer.md).

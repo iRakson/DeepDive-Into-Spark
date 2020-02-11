@@ -1,4 +1,23 @@
-## Memory Location and Memory Block
+# Memory Allocator
+
+Actual Memory Allocation is done by Memory Allocators. We have two different allocators for allocating memory in off-Heap
+and on-Heap mode.
+
+* **Unsafe Memory Allocator** :
+It is responsible for allocating off-Heap memory. It internally calls unsafe's *allocateMemory()* for allocating memory 
+and *freeMemory()* for freeing the memory. If memory debug is enabled, allocated memory bytes are filled with `0xa5` and 
+de-allocated bytes are filled with `0x5a`.
+
+* **Heap Memory Allocator** : 
+It is responsible for allocating on-heap memory. It uses long array for allocating the memory while JVM's Garbage collection
+takes care of freeing the unused memory. Spark uses pooling mechanism for allocating memories from on-heap memory. It 
+maintains a pool which keeps track of all the allocated but not used memory blocks and whenever a new request comes, it
+first check whether any block of that much memory size is available or not. If its available then that block is returned
+otherwise a new memory block is asked from long array.
+
+Both these allocators are implemented in *org.apache.spark.unsafe.memory*. Both of them implements *MemoryAllocator*.
+
+# Memory Location and Memory Block
 
 In case of Off-Heap memory we can directly address memory using 64-bit addresses. Same is not the case in JVM addressed
 memory. To address memory we need to know which object it belongs to and it's offset within that object. This means 128 
@@ -13,7 +32,7 @@ base object reference and offset. MemoryBlock extends MemoryLocation. It also co
 Note : All the memory requests are granted in terms of pages only in spark. These pages are nothing but MemoryBlock.
 Due to this reason only we have page numbers for memory blocks.
 
-## Memory Consumers
+# Memory Consumers
 
 Memory consumers are the one's who makes request for memory. They consume memory for performing various shuffle, sort,
 hashing operations. Also they only deal with the tungsten memory(It will be discussed in detail later).
@@ -26,7 +45,7 @@ So how Exactly a memory consumer gets MemoryBlock/page ? Whenever a memory consu
 it first check whether it has any page with sufficient memory available. If its available then it will simply write the
 record in that page. Otherwise, it will call *allocatePage()* of TaskMemoryManager. If its possible then TaskMemoryManager
 will allocate a page to this memory consumer and stores this allocated memory block reference in page table's pageNumber 
-index and finally returns that memory Block to consumer. After acquiring a page, memory consumer will update its own list
+index and finally returns that memory block to consumer. After acquiring a page, memory consumer will update its own list
 of pages and set cursor to zero for this new page. Record will get written in this new page and all the other necessary
 value will be updated accordingly. To get encoded address of this record memory consumer will call TaskMemoryManager's 
 *encodePageNumberAndOffset()*. encodePageNumberAndOffset() takes current page and cursor as parameter and returns the 
@@ -46,26 +65,6 @@ of 51 bits only, since off-Heap addresses are absolute addresses it is possible 
 than 51 bits. Also a page size can never be more than 17GB. So to deal with this problem, spark subtracts the base offset
 value from cursor/offset and use this value as relative offset for encoding. While decoding the record address reverse of
 this operation is performed for off-Heap mode.
-
-
-# Memory Allocator
-
-Actual Memory Allocation is done by Memory Allocators. We have two different allocators for allocating memory in off-Heap
-and on-Heap mode.
-
-* **Unsafe Memory Allocator** :
-It is responsible for allocating off-Heap memory. It internally calls unsafe's *allocateMemory()* for allocating memory 
-and *freeMemory()* for freeing the memory. If memory debug is enabled, allocated memory bytes are filled with `0xa5` and 
-de-allocated bytes are filled with `0x5a`.
-
-* **Heap Memory Allocator** : 
-It is responsible for allocating on-heap memory. It uses long array for allocating the memory while JVM's Garbage collection
-takes care of freeing the unused memory. Spark uses pooling mechanism for allocating memories from on-heap memory. It 
-maintains a pool which keeps track of all the allocated but not used memory blocks and whenever a new request comes, it
-first check whether any block of that much memory size is available or not. If its available then that block is returned
-otherwise a new memory block is asked from long array.
-
-Both these allocators are implemented in *org.apache.spark.unsafe.memory*. Both of them implements *MemoryAllocator*.
 
 Next we will understand how [Task Memory Manager](TaskMemoryManager.md) handles the memory request and how its keeps 
 track of all the allocated pages and some other important stuffs. 

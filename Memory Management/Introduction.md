@@ -19,10 +19,9 @@ implemented its memory allocator for managing the off-heap memory as JVM will no
 
 First of all lets see how many different regions of memory are there for a spark application:
 
-* **Reserved Memory** : This has been hard-coded to 300MB by spark from spark 1.6.
-
-This memory has been reserved for system. This is done specially to prevent the out of memory error when running the 
-spark in local mode. In local mode both driver as well as executor runs as same JVM processes.
+* **Reserved Memory** : This has been hard-coded to 300MB by spark from spark 1.6. This memory has been reserved for system. 
+This is done specially to prevent the out of memory error when running spark in local mode. In local mode both driver as
+well as executor runs as same JVM processes.
 
 
 * **Spark Memory** : This region is used by the spark applications performing all the execution and caching operations. Size
@@ -40,11 +39,11 @@ _unroll memory_.
 
 Spark memory manager is responsible for managing the spark memory i.e. execution memory and storage memory.
 
-* **User Memory** = Total Memory - Reserved Memory - Spark Memory
+* **User Memory** :This memory region is used to store information about all the user defined data structures, classes, 
+methods. It is also used for storing the metadata related to the application. Its size is dependent on the size of spark
+memory. So this is configurable as well. Size of user memory is calculated in following way :
 
-This memory region is used to store information about all the user defined data structures, classes, methods. It is also used 
-for storing the metadata related to the application. Its size is dependent on the size of spark memory. So this is configurable
-as well.
+    Total Memory - Reserved Memory - Spark Memory
 
 Until now we have seen different types and regions of spark memory. We will understand [Memory Manager](MemoryManager.md)
 which is responsible for managing execution and storage memory next.

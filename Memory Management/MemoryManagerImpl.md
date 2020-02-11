@@ -6,7 +6,7 @@
 
 It has an abstract class named MemoryManager which has methods for acquiring memory, releasing memory, checking memory 
 uses etc. This class is extended by the two types of memory manager that we discussed above StaticMemoryManager and 
-UnifiedMemoryManager. These two classes will implemetnt their logic for acquiring and releasing execution, storage and 
+UnifiedMemoryManager. These two classes will implement their logic for acquiring and releasing execution, storage and 
 unroll memory. For bookkeeping about all the available memory, spark has another abstract class called 'MemoryPool'. 
 There are 2 classes(ExecutionMemoryPool and StorageMemoryPool) that extends this abstract class. As spark has to do 
 bookkeeping for on-heap memory as well as off-heap memory, it creates total 4 pools.
