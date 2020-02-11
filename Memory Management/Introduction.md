@@ -50,13 +50,4 @@ Until now we have seen different types and regions of spark memory. We will unde
 which is responsible for managing execution and storage memory next.
 
 
-* Project Tungsten
-* What types of memory is present in Spark?
-* How is memory distribution done?
-* What is the use of each part of the memory?
-* How execution and storage memory is managed by spark?
-* How each task gets their share of memory from the execution memory?
-* How each memory consumer within a task gets their share of memory?
-* How actually is memory allocated in the spark and how each task keeps track of all its memory?(Talk about physical allocation and paging) - done
-
 
