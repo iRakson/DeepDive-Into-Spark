@@ -55,17 +55,53 @@ storage area.
 * Until spark 2.4 both static memory manager and unified memory manager were there for users. From spark 3.0, only unified
 memory manager is available for users.
 
+## How does spark implements memory management:
 
-Until now we have seen how memory is arbitrated between execution and storage. But this is not the only arbitration that spark
-has to do while managing memory for a spark application.
+Spark defines a abstract class named _MemoryManager_ which has methods for acquiring memory, releasing memory, checking 
+memory uses etc. This class is extended by two types of memory manager that we discussed above _StaticMemoryManager_ and 
+_UnifiedMemoryManager_. These two classes will implement their logic for acquiring and releasing execution, storage and 
+unroll memory. For bookkeeping about all the available memory, spark has another abstract class called _MemoryPool_. 
+There are 2 classes(_ExecutionMemoryPool_ and _StorageMemoryPool_) that extends this abstract class. As spark has to do 
+bookkeeping for on-heap memory as well as off-heap memory, it creates total 4 pools.
 
-a.) How to manage memory across different tasks of an application?
-b.) How to manage memory across different operators of a task?
+Note : Memory manager do not allocate any memory, it only adjusts the boundaries of memory pools and returns the amount 
+of memory that can be granted for a request in case of execution memory request and whether to grant requested memory or
+not in case of storage memory request. 
 
-We will discuss all this in next few chapters.
+## Memory Pool
+Memory pools are used for doing the book keeping by the memory managers. Spark has execution memory pool for execution
+memory and storage memory pool for storage memory. We have separate pools for off-heap memory and on-heap memory. 
 
-We must remember this always, Memory manager never allocates physical memory. It only tells how much memory to grant
-in case of execution memory request and whether to grant requested memory or not in case of storage memory request.
+Execution memory pool ensures that each tasks gets its fair share of memory. Each tasks with execution memory request can
+get at max 1/N of total memory, where N is number of active tasks.
+
+    Max memory allocated to task, max = 1/N
+    Min memory allocated to task, min = 1/2N
+    N = Number of active tasks
+
+Whenever a memory request from a task comes to execution memory pool it first add the current task into its task list, if
+it's not already present. And notify the other tasks about this task. Then it tries to grow the execution memory pool i.e.
+it will check whether storage memory pool is using more than its share of memory. If yes then execution pool will grow 
+while storage pool will shrink. 
+
+It then calculates max and min using above equation and checks how much memory it can grant to this current task. If toGrant
+memory is less than min memory then it will wait till it can grant atleast min amount of memory. Otherwise memory request
+will be granted.
+
+Logic for acquiring storage memory is relatively simpler than acquiring execution memory. On receiving a request for storage
+memory, memory manager will check whether storage pool has free memory left or not. If not, it will check whether it can borrow 
+some memory from execution pool. If it can't get required amount from execution pool then it will simply evict some of the
+cached blocks to the disk.
+
+
+Until now we have seen how memory is arbitrated between execution and storage and how to arbitrate memory between tasks.
+There is one memory arbitration left to discuss which spark does:
+
+* How to manage memory across different operators of a task?
+
+This will be discussed in [TaskMemoryManager](TaskMemoryManager.md)
 
 Who exactly allocates the physical memory then? And who make these memory requests?
 We will answer this in next chapter [MemoryConsumer](MemoryConsumer.md).
+
+Reference : https://0x0fff.com/spark-memory-management/

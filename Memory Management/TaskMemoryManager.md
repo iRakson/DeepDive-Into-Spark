@@ -26,10 +26,11 @@ table and return the page.
 
 ### Acquiring Execution Memory
 Execution memory can be acquired by 3 sources:
-* If enough execution memory is free then new memory pages are allocated.
-* If there is not enough execution memory then other consumers will spill to provide pages to requesting consumer.
-* Even after spilling other consumers if requested amount of memory is not free then, memory spill from current consumer
-will happen.
+
+    * If enough execution memory is free then new memory pages are allocated.
+    * If there is not enough execution memory then other consumers will spill to provide pages to requesting consumer.
+    * Even after spilling other consumers if requested amount of memory is not free then, memory spill from current consumer
+    will happen.
 
 
 On receiving acquireExecutionMemory request from any memory consumer TaskMemoryManager will first call the _acquireExecutionMemory()_ 
@@ -61,10 +62,3 @@ implement their own spill logic.
 ### Encoding and decoding Page Number and offset
 TaskMemoryManager also implements the logic for encoding and decoding page number and offsets. We already have discussed
 the encoding logic in [MemoryConsumer](MemoryConsumer.md)  
-
-Until now we have already discussed about how memory manager arbitrates between execution and storage memory, how memory
-is allocated, who consumes the memory , paging, how to handle memory requests from memory consumers and encoding/decoding 
-of memory addresses.
-
-Next chapter we will discuss how memory manager is actually implemented and what all data structures it use to accomplish
-this. [MemoryManagerImpl](MemoryManagerImpl.md) 
