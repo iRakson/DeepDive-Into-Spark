@@ -1,4 +1,4 @@
-# Memory Management in Spark
+# Spark Memory Management
 
 Spark is one of the fastest big data processing engine available to us at the moment. It gets all its efficiency by performing
 in-memory processing. So its memory management becomes one of the most fascinating topics. Here we will try to dig deep
